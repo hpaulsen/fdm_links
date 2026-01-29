@@ -5,7 +5,7 @@ from bpy.types import Operator
 from bpy.props import FloatVectorProperty, EnumProperty, FloatProperty, IntProperty
 from mathutils import Vector, Matrix, Euler
 
-class HPaulsen_FDMLink:
+class HPaulsen_FDMJoint:
     def __init__(self,type,size,up_angle,down_angle,horizontal_angle,clearance,resolution):
         self.name = "3d Joint"
         self.type = type
@@ -334,7 +334,7 @@ class HPaulsen_FDMLink:
         
         return self.create_obj(verts,faces)
     
-    def link1side(self):
+    def joint1side(self):
         a = self.add_arm_space()
         b = self.add_separator(self.separator_y,self.separator_outer_r,self.print_angle,self.print_angle,self.print_angle)
         self.apply_boolean(a,b,"UNION")
@@ -370,7 +370,7 @@ class HPaulsen_FDMLink:
         bpy.ops.object.editmode_toggle()
         return a
     
-    def link2side(self):
+    def joint2side(self):
         a_min = min(self.bendable_angle,self.up_angle,self.down_angle)
         
         # figure out (or estimate) the distance between the two joint ends
@@ -434,28 +434,28 @@ class HPaulsen_FDMLink:
         bpy.ops.object.editmode_toggle()
         return a
     
-    def link(self):
-        ret = self.link1side() if self.type == "1SIDE" else self.link2side()
+    def joint(self):
+        ret = self.joint1side() if self.type == "1SIDE" else self.joint2side()
         ret.select_set(True)
         bpy.context.view_layer.objects.active = ret
         return ret
         
 
-def add_FDMLink(self, context):
-    j = HPaulsen_FDMLink(self.type,self.socket_width,self.up_angle,self.down_angle,self.horizontal_angle,self.clearance,self.resolution)
-    obj = j.link()
+def add_FDMJoint(self, context):
+    j = HPaulsen_FDMJoint(self.type,self.socket_width,self.up_angle,self.down_angle,self.horizontal_angle,self.clearance,self.resolution)
+    obj = j.joint()
     obj.location = obj.location+Vector(self.location)
     obj.rotation_euler = Vector(self.rotation)
 
-class OBJECT_OT_fdmlink(Operator):
+class OBJECT_OT_fdmjoint(Operator):
     """Create a new Joint"""
-    bl_idname = "mesh.fdmlink"
-    bl_label = "Add FDM Link"
+    bl_idname = "mesh.fdmjoint"
+    bl_label = "Add FDM Joint"
     bl_options = {'REGISTER', 'UNDO'}
     
     type: EnumProperty(
         name="Separation Type",
-        description="The type of separation between links",
+        description="The type of separation between joints",
         items=[
             ("1SIDE","1 Sided","",1),
             ("2SIDE","2 Sided","",2)
@@ -523,35 +523,35 @@ class OBJECT_OT_fdmlink(Operator):
 
     def execute(self, context):
 
-        add_FDMLink(self, context)
+        add_FDMJoint(self, context)
 
         return {'FINISHED'}
 
 # Registration
 
-def fdmlink_button(self, context):
+def fdmjoint_button(self, context):
     self.layout.operator(
-        OBJECT_OT_fdmlink.bl_idname,
-        text="FDM Link",
+        OBJECT_OT_fdmjoint.bl_idname,
+        text="FDM Joint",
         icon='PLUGIN')
 
 # This allows you to right click on a button and link to documentation
-def fdmlink_manual_map():
-    url_manual_prefix = "https://github.com/hpaulsen/fdm_links/"
+def fdmjoint_manual_map():
+    url_manual_prefix = "https://github.com/hpaulsen/fdm_joints/"
     url_manual_mapping = (
-        ("bpy.ops.mesh.FDMLink", "scene_layout/object/types.html"),
+        ("bpy.ops.mesh.FDMJoint", "scene_layout/object/types.html"),
     )
     return url_manual_prefix, url_manual_mapping
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_fdmlink)
-    bpy.utils.register_manual_map(fdmlink_manual_map)
-    bpy.types.VIEW3D_MT_mesh_add.append(fdmlink_button)
+    bpy.utils.register_class(OBJECT_OT_fdmjoint)
+    bpy.utils.register_manual_map(fdmjoint_manual_map)
+    bpy.types.VIEW3D_MT_mesh_add.append(fdmjoint_button)
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_fdmlink)
-    bpy.utils.unregister_manual_map(fdmlink_manual_map)
-    bpy.types.VIEW3D_MT_mesh_add.remove(fdmlink_button)
+    bpy.utils.unregister_class(OBJECT_OT_fdmjoint)
+    bpy.utils.unregister_manual_map(fdmjoint_manual_map)
+    bpy.types.VIEW3D_MT_mesh_add.remove(fdmjoint_button)
 
 if __name__ == "__main__":
     register()
