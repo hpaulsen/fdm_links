@@ -5,7 +5,7 @@ from bpy.types import Operator
 from bpy.props import FloatVectorProperty, EnumProperty, FloatProperty, IntProperty
 from mathutils import Vector, Matrix, Euler
 
-class HPaulsen_FDMJoint:
+class HPaulsen_FDMLink:
     def __init__(self,type,size,up_angle,down_angle,horizontal_angle,clearance,resolution):
         self.name = "3d Joint"
         self.type = type
