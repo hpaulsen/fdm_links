@@ -36,7 +36,9 @@ Although not required, it is recommended to also change the grid scale to 0.1 an
 ## Limitations
 
 * Requires scene to be set up properly
+* Greater vertical bending radius than horizontal, particularly at smaller sizes
 * Only 0.4 mm nozzle diameters are supported (To use other sizes of nozzles, the model and links should be scaled accordingly.)
 * Assumes 0.2 mm layer heights (Smaller layer heights should be fine, but probably not larger.)
 * Assumes z=0 to be the bottom of the model and will not work correctly for models that extend below the z=0 plane
+* Angles aren't exact
 
