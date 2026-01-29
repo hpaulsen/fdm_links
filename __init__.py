@@ -529,9 +529,9 @@ class OBJECT_OT_fdmlink(Operator):
 
 # Registration
 
-def joint_button(self, context):
+def link_button(self, context):
     self.layout.operator(
-        OBJECT_OT_joint.bl_idname,
+        OBJECT_OT_fdmlink.bl_idname,
         text="FDM Link",
         icon='PLUGIN')
 
@@ -544,12 +544,12 @@ def joint_manual_map():
     return url_manual_prefix, url_manual_mapping
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_joint)
+    bpy.utils.register_class(OBJECT_OT_fdmlink)
     bpy.utils.register_manual_map(joint_manual_map)
     bpy.types.VIEW3D_MT_mesh_add.append(joint_button)
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_joint)
+    bpy.utils.unregister_class(OBJECT_OT_fdmlink)
     bpy.utils.unregister_manual_map(joint_manual_map)
     bpy.types.VIEW3D_MT_mesh_add.remove(joint_button)
 
