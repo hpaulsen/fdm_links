@@ -468,7 +468,7 @@ class OBJECT_OT_fdmjoint(Operator):
         description="The width of the joint socket",
         subtype="DISTANCE",
         default=3,
-        min=0.01
+        min=2.6
     )
     
     up_angle: FloatProperty(
