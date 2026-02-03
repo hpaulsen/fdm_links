@@ -436,6 +436,9 @@ class HPaulsen_FDMJoint:
         return a
     
     def joint(self):
+        # make sure nothing is selected
+        for obj in bpy.context.selected_objects[:]:
+            obj.select_set(False)
         ret = self.joint1side() if self.type == "1SIDE" else self.joint2side()
         ret.select_set(True)
         bpy.context.view_layer.objects.active = ret

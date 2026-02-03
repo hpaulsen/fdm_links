@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "fdm_joints"
-version = "0.1.4"
+version = "0.1.5"
 name = "FDM Joints"
 tagline = "Easy and durable joints for flexible/articulated 3d-printed toys"
 maintainer = "HPaulsen"
