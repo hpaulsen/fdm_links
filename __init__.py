@@ -15,30 +15,37 @@ class HPaulsen_FDMJoint:
         self.up_angle = up_angle
         self.down_angle = down_angle
         
-        self.clearance = clearance # 0.38 seems generous, but required
-        self.overlap = max(0.3,self.size/10) # each side
-        self.print_angle = math.radians(45) # don't change!
+        self.clearance = clearance # 0.3 seems generous, but is about the minimum recommended
+        self.overlap = 0.3 #max(0.3,self.size/20) # each side
+        self.print_angle = math.radians(45) # don't change without verifying areas where this is assumed
         self.a_step = 2*math.pi/resolution
-        self.half_arm_width = max(0.4,0.3*self.size/2)
+        self.half_arm_width = max(0.6,0.3*self.size/2)
         self.wall_width = max(0.8,0.25*self.size/2)
         self.bridgeable_r = 1.5 # max safe bridgeable distance
         
-        self.axle_x = self.size/2 - self.clearance
-        self.axle_min_r = max(0.4,self.size/6)
-        self.axle_r = self.axle_min_r+self.overlap+self.clearance
-        self.axle_major_r = self.axle_min_r+self.axle_x-self.half_arm_width
+        self.axle_min_r = max(0.4,self.size/6) # the radius of the endpoint of the "ball"
+        self.axle_major_r = self.size/2 - self.clearance
+        self.axle_x = math.sqrt(math.pow(self.axle_major_r,2)-math.pow(self.axle_min_r,2))
+        self.axle_r = self.axle_min_r+(self.axle_x-self.half_arm_width)/math.tan(self.print_angle) #self.axle_min_r+self.overlap+self.clearance
 
         self.v_clearance = 0.6 # clearance between axle and roof of socket
         self.v_clearance_max = 2 # max clearance between axle and roof of socket
-        self.bottom = 1.5*self.size
+        self.bottom = 1.5*self.size # how low to go, rather arbitrary - just has to be long enough to be below z=0
         self.arm_length = self.size/2+self.wall_width+2*self.clearance#2*self.size
         self.separator_outer_r = 2*self.size
         self.separator_y = self.size/2+self.wall_width
+        
+        if self.axle_x-self.overlap < self.half_arm_width+self.clearance:
+            raise RuntimeError("FDMJoint: Axle size is too small and/or Clearance is too large")
+        
         self.bendable_angle = math.asin((self.axle_x-self.overlap-self.half_arm_width)/(self.size/2+self.clearance))
         if self.bendable_angle > horizontal_angle:
             self.bendable_angle = horizontal_angle
+        elif self.bendable_angle < 0:
+            self.bendable_angle = 0
+            
         self.bottom_r = self.axle_x-self.overlap
-        self.raise_z = self.axle_major_r+self.v_clearance+max(0,0.2*(self.axle_major_r-3.0)) # keep it as low as possible when <= 3mm diameter
+        self.raise_z = 1.5*self.axle_r # somewhat arbitrary
 
     def loopx(self,verts,r,x):
         verts += [(x,r*math.sin(i*self.a_step),r*math.cos(i*self.a_step)) for i in range(self.resolution)]
@@ -373,15 +380,9 @@ class HPaulsen_FDMJoint:
     def joint2side(self):
         a_min = min(self.bendable_angle,self.up_angle,self.down_angle)
         
-        # figure out (or estimate) the distance between the two joint ends
-        yh = self.separator_y*math.cos(self.bendable_angle)-self.half_arm_width*math.sin(self.bendable_angle)*math.cos(self.bendable_angle)+self.clearance/2
-        # the following is a very crude approximation of correct separation
-        yu = self.separator_y*math.cos(math.pi/3.4*math.sin(math.pi/8*math.sin(self.up_angle)+self.up_angle)+self.up_angle)+self.clearance/2
-        # another very crude approximation, more trial-and-error than true
-        yd = self.separator_y*math.cos(math.pi/4+self.down_angle)+self.size/6+self.clearance/2
-        y = max(yh,yu,yd)
-        
+        y = self.separator_y
         y_offset = Vector((0,y,0))#+self.clearance/4,0))
+
         rot180 = Vector((0,0,math.pi))
         a = self.add_separator(self.separator_y,self.separator_outer_r,self.bendable_angle,self.up_angle,self.down_angle)
         a.location -= y_offset
@@ -441,12 +442,6 @@ class HPaulsen_FDMJoint:
         return ret
         
 
-def add_FDMJoint(self, context):
-    j = HPaulsen_FDMJoint(self.type,self.socket_width,self.up_angle,self.down_angle,self.horizontal_angle,self.clearance,self.resolution)
-    obj = j.joint()
-    obj.location = obj.location+Vector(self.location)
-    obj.rotation_euler = Vector(self.rotation)
-
 class OBJECT_OT_fdmjoint(Operator):
     """Create a new Joint"""
     bl_idname = "mesh.fdmjoint"
@@ -467,8 +462,8 @@ class OBJECT_OT_fdmjoint(Operator):
         name="Socket Width",
         description="The width of the joint socket",
         subtype="DISTANCE",
-        default=3,
-        min=2.6
+        default=4,
+        min=2.8
     )
     
     up_angle: FloatProperty(
@@ -505,8 +500,8 @@ class OBJECT_OT_fdmjoint(Operator):
         name="Clearance",
         description="The print clearance between moving parts",
         subtype="DISTANCE",
-        default=0.38,
-        min=0.01
+        default=0.3,
+        min=0.1
     )
     
     resolution: IntProperty(
@@ -523,7 +518,13 @@ class OBJECT_OT_fdmjoint(Operator):
 
     def execute(self, context):
 
-        add_FDMJoint(self, context)
+        try:
+            j = HPaulsen_FDMJoint(self.type,self.socket_width,self.up_angle,self.down_angle,self.horizontal_angle,self.clearance,self.resolution)
+            obj = j.joint()
+            obj.location = obj.location+Vector(self.location)
+            obj.rotation_euler = Vector(self.rotation)
+        except RuntimeError as err:
+            self.report({'ERROR'},str(err))
 
         return {'FINISHED'}
 
