@@ -13,6 +13,15 @@ These are the two biggest problems with flexible/articulated models commonly ava
 other filaments that are usually too fragile for these types of models, like Silk PLA, are now usable. These joints are also much less likely to
 break than the interlocking ring joint style that is so common, making the process of making and giving out 3d-printed toys much more enjoyable.
 
+## Installation
+
+To install or upgrade:
+
+1. Download source as a zip.
+2. In blender preferences, go to "Get Extensions"
+3. In the rightmost dropdown menu (the tiny down arrow to the right of "Repositories") select "Install from Disk..."
+4. Select the zip file
+
 ## Procedure
 
 Here's how to use it:
